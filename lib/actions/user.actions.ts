@@ -6,6 +6,7 @@ import { appwriteConfig } from "../appwrite/config";
 import { parseStringify } from "../utils";
 import { avatarPlaceholderUrl } from "@/constants";
 
+
 // **create account flow**
 
 const getUserByEmail = async (email: string) => {
@@ -19,7 +20,7 @@ const getUserByEmail = async (email: string) => {
   return result.total > 0 ? result.documents[0] : null;
 };
 
-const handleError = (error: unknown, message: string) => {
+export const handleError = async (error: unknown, message: string) => {
   console.log(error, message);
   throw error;
 };
@@ -80,3 +81,15 @@ export const getCurrentUser = async () => {
 }
 
 
+export const signInUser = async ({email}: {email: string}) => {
+  try {
+    const existingUser = await getUserByEmail(email)
+    // user exists - send OTP
+    if(existingUser) {
+      await sendEmailOTP({email})
+      return parseStringify({accountId: existingUser.accountId})
+    }
+  } catch (error) {
+    handleError(error, "Failed to sign in user")
+  }
+}

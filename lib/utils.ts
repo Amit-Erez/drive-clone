@@ -233,3 +233,10 @@ export const getFileTypesParams = (type: string) => {
       return ["document"];
   }
 };
+
+export async function logoutRequest() {
+  await fetch("/api/auth/signout", {
+    method: "POST",
+    credentials: "include",
+  });
+}

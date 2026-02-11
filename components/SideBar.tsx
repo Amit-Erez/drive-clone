@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 interface Props {
 fullName: string, 
 avatar: string,
-email: string
+email: string,
 }
 
 const SideBar = ({ fullName, avatar, email}: Props) => {
