@@ -1,9 +1,11 @@
 "use server";
 
 import { ID, Query } from "node-appwrite";
-import { createAdminClient } from "../appwrite";
+import { createAdminClient, createSessionClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
 import { parseStringify } from "../utils";
+import { avatarPlaceholderUrl } from "@/constants";
+
 // **create account flow**
 
 const getUserByEmail = async (email: string) => {
@@ -53,7 +55,7 @@ export const createAccount = async ({
         fullName,
         email,
         avatar:
-          "https://cdn.pixabay.com/photo/2016/08/08/09/17/avatar-1577909_1280.png",
+          avatarPlaceholderUrl,
         accountId,
       },
     );
@@ -62,27 +64,19 @@ export const createAccount = async ({
   return parseStringify({ accountId });
 };
 
+export const getCurrentUser = async () => {
+  const {databases, account } = await createSessionClient()
+
+  const result = await account.get();
+  const user = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.usersCollectionId,
+    [Query.equal("accountId", result.$id)]
+  );
+
+  if (user.total <= 0) return null
+
+  return parseStringify(user.documents[0])
+}
 
 
-
-
-
-
-
-// export const verifySecret = async ({
-//   accountId,
-//   password,
-// }: {
-//   accountId: string;
-//   password: string;
-// }) => {
-//   try {
-//     const {account} = await createAdminClient();
-
-//     const session: any = await account.createSession(accountId, password);
-
-//     return parseStringify({sessionId: session.$id});
-//   } catch (error) {
-//       handleError(error, "Failed to verify OTP")
-//   }
-// };
