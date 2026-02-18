@@ -1,11 +1,12 @@
 "use server";
 
-import { ID } from "node-appwrite";
+import { ID, Models, Query } from "node-appwrite";
 import { createAdminClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
-import { handleError } from "./user.actions";
+import { getCurrentUser, handleError } from "./user.actions";
 import { constructFileUrl, getFileType, parseStringify } from "../utils";
 import { revalidatePath } from "next/cache";
+import { error } from "console";
 
 export const uploadFile = async ({
   file,
@@ -58,3 +59,39 @@ export const uploadFile = async ({
     return null;
   }
 };
+
+const createQueries = (currentUser: Models.Document) => {
+   const queries = [
+     Query.or([
+        Query.equal("owner", [currentUser.$id]),
+        Query.contains("users", [currentUser.email])
+    ])
+   ] 
+
+   // TODO: Search, Sort, limits...
+
+   return queries
+}
+
+export const getFiles = async () => {
+    const {databases} = await createAdminClient()
+    try {
+        const currentUser = await getCurrentUser()
+        if (!currentUser) throw new Error("User not found")
+        
+        const queries = createQueries(currentUser)    
+
+        console.log({currentUser, queries})
+
+        const files = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.filesCollectionId,
+            queries,
+        );
+        console.log({files})
+        return parseStringify(files)
+
+    } catch (error) {
+        handleError(error, "Failed to get files")
+    }
+}
