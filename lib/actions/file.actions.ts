@@ -23,32 +23,38 @@ export const uploadFile = async ({
     );
 
     const fileDocument = {
-        type: getFileType(bucketFile.name).type,
-        name: bucketFile.name,
-        url: constructFileUrl(bucketFile.$id),
-        extension: getFileType(bucketFile.name).extension,
-        size: bucketFile.sizeOriginal,
-        owner: ownerId,
-        accountId,
-        users: [],
-        bucketFileId: bucketFile.$id
-    }
+      type: getFileType(bucketFile.name).type,
+      name: bucketFile.name,
+      url: constructFileUrl(bucketFile.$id),
+      extension: getFileType(bucketFile.name).extension,
+      size: bucketFile.sizeOriginal,
+      owner: ownerId,
+      accountId,
+      users: [],
+      bucketField: bucketFile.$id,
+    };
 
-    const newFile = await databases.createDocument(
+    let newFile;
+    try {
+      newFile = await databases.createDocument(
         appwriteConfig.databaseId,
         appwriteConfig.filesCollectionId,
         ID.unique(),
         fileDocument,
-    )
-        .catch(async (error: unknown) => {
-            await storage.deleteFile(appwriteConfig.bucketId, bucketFile.$id);
-            handleError(error, "Failed to create file document")
-        });
+      );
+    } catch (error) {
+      await storage.deleteFile(appwriteConfig.bucketId, bucketFile.$id);
+      handleError(error, "Failed to create file document");
+      return null;
+    }
 
-        revalidatePath(path);
-        return parseStringify(newFile)
-        
+    revalidatePath(path);
+    if (newFile) {
+      return parseStringify(newFile);
+    }
+    return null;
   } catch (error) {
     handleError(error, "Failed to upload files");
+    return null;
   }
 };

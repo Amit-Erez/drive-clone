@@ -4,8 +4,18 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-export const parseStringify = (value: unknown) =>
-  JSON.parse(JSON.stringify(value));
+export const parseStringify = (value: unknown) => {
+  console.log('parseStringify input:', value);
+    if (value === undefined) {
+      throw new Error("Cannot use parseStringify on undefined value");
+    }
+    if (value instanceof File || value instanceof Blob) {
+    throw new Error("Cannot use parseStringify on File or Blob objects");
+  }
+    console.log('parseStringify input:', value, 'type:', typeof value, value && value.constructor && value.constructor.name);
+    return JSON.parse(JSON.stringify(value));
+  };
+
 
 export const convertFileToUrl = (file: File) => URL.createObjectURL(file);
 

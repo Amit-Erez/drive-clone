@@ -40,7 +40,7 @@ const FileUploader = ({ ownerId, accountId, className }: Props) => {
             className: "error-toast",
           });
         }
-
+        console.log({ file, ownerId, accountId, path });
         return uploadFile({ file, ownerId, accountId, path }).then(
           (uploadedFile) => {
             if (uploadedFile) {
