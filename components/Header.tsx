@@ -7,7 +7,7 @@ import FileUploader from "./FileUploader";
 import { logoutRequest } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
-const Header = () => {
+const Header = ({ userId, accountId}: {userId: string; accountId: string}) => {
   const router = useRouter();
 
   const onLogout = async () => {
@@ -21,7 +21,7 @@ const Header = () => {
     <header className="header">
       <Search />
       <div className="header-wrapper">
-        <FileUploader />
+        <FileUploader ownerId={userId} accountId={accountId}/>
           <button type="submit" className="sign-out-button" onClick={onLogout}>
             <Image
               src="/assets/icons/logout.svg"
