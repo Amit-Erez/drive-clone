@@ -6,7 +6,7 @@ import { appwriteConfig } from "../appwrite/config";
 import { getCurrentUser, handleError } from "./user.actions";
 import { constructFileUrl, getFileType, parseStringify } from "../utils";
 import { revalidatePath } from "next/cache";
-import { error } from "console";
+// import { error } from "console";
 
 export const uploadFile = async ({
   file,
@@ -61,37 +61,61 @@ export const uploadFile = async ({
 };
 
 const createQueries = (currentUser: Models.Document) => {
-   const queries = [
-     Query.or([
-        Query.equal("owner", [currentUser.$id]),
-        Query.contains("users", [currentUser.email])
-    ])
-   ] 
+  const queries = [
+    Query.or([
+      Query.equal("owner", [currentUser.$id]),
+      Query.contains("users", [currentUser.email]),
+    ]),
+  ];
 
-   // TODO: Search, Sort, limits...
+  // TODO: Search, Sort, limits...
 
-   return queries
-}
+  return queries;
+};
 
 export const getFiles = async () => {
-    const {databases} = await createAdminClient()
-    try {
-        const currentUser = await getCurrentUser()
-        if (!currentUser) throw new Error("User not found")
-        
-        const queries = createQueries(currentUser)    
+  const { databases } = await createAdminClient();
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) throw new Error("User not found");
 
-        console.log({currentUser, queries})
+    const queries = createQueries(currentUser);
 
-        const files = await databases.listDocuments(
-            appwriteConfig.databaseId,
-            appwriteConfig.filesCollectionId,
-            queries,
-        );
-        console.log({files})
-        return parseStringify(files)
+    console.log({ currentUser, queries });
 
-    } catch (error) {
-        handleError(error, "Failed to get files")
-    }
-}
+    const files = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      queries,
+    );
+    console.log({ files });
+    return parseStringify(files);
+  } catch (error) {
+    handleError(error, "Failed to get files");
+  }
+};
+
+export const renameFile = async ({
+  fileId,
+  name,
+  extension,
+  path,
+}: RenameFileProps) => {
+  const { databases } = await createAdminClient();
+  try {
+    const newName = `${name}.${extension}`;
+    const updatedFile = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId,
+      {
+        name: newName,
+      },
+    );
+
+    revalidatePath(path);
+    return parseStringify(updatedFile);
+  } catch (error) {
+    handleError(error, "Failed to rename file");
+  }
+};
