@@ -32,7 +32,7 @@ export const uploadFile = async ({
       owner: ownerId,
       accountId,
       users: [],
-      bucketField: bucketFile.$id,
+      bucketFileId: bucketFile.$id,
     };
 
     let newFile;
@@ -142,3 +142,31 @@ export const updateFileUsers = async ({
     handleError(error, "Failed to rename file");
   }
 };
+
+export const deleteFile = async ({
+  fileId,
+  bucketFileId,
+  path,
+}: DeleteFileProps) => {
+  const { databases, storage } = await createAdminClient();
+  try {
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId,
+    );
+
+        await storage.deleteFile(
+          appwriteConfig.bucketId, bucketFileId
+        )
+      
+
+    revalidatePath(path);
+    return true
+  } catch (error) {
+    handleError(error, "Failed to delete file");
+    return false 
+  }
+};
+
+
