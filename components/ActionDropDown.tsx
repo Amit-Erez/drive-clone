@@ -93,7 +93,7 @@ const ActionDropDown = ({ file }: { file: Models.Document }) => {
     return (
       <DialogContent className="shad-dialog button">
         <DialogHeader className="flex flex-col gap-3">
-          <DialogTitle className="text-center text-gray-100">
+          <DialogTitle className="text-center text-light-100">
             {label}
           </DialogTitle>
           {value === "rename" && (
