@@ -60,7 +60,7 @@ export const uploadFile = async ({
   }
 };
 
-const createQueries = (currentUser: Models.Document) => {
+const createQueries = (currentUser: Models.Document, types: string[], searchText: string, sort: string, limit?: number) => {
   const queries = [
     Query.or([
       Query.equal("owner", [currentUser.$id]),
@@ -68,18 +68,27 @@ const createQueries = (currentUser: Models.Document) => {
     ]),
   ];
 
-  // TODO: Search, Sort, limits...
+  if (types.length > 0) queries.push(Query.equal("type", types));
+  if (searchText) queries.push(Query.contains("name", searchText));
+  if (limit) queries.push(Query.limit(limit));
+
+  const [sortBy]
 
   return queries;
 };
 
-export const getFiles = async () => {
+export const getFiles = async ({
+  types = [],
+  searchText = "",
+  sort = "$createdAt-desc",
+  limit,
+}: GetFilesProps) => {
   const { databases } = await createAdminClient();
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) throw new Error("User not found");
 
-    const queries = createQueries(currentUser);
+    const queries = createQueries(currentUser, types, searchText, sort, limit);
 
     console.log({ currentUser, queries });
 
@@ -132,7 +141,7 @@ export const updateFileUsers = async ({
       appwriteConfig.filesCollectionId,
       fileId,
       {
-        users: emails
+        users: emails,
       },
     );
 
@@ -156,17 +165,12 @@ export const deleteFile = async ({
       fileId,
     );
 
-        await storage.deleteFile(
-          appwriteConfig.bucketId, bucketFileId
-        )
-      
+    await storage.deleteFile(appwriteConfig.bucketId, bucketFileId);
 
     revalidatePath(path);
-    return true
+    return true;
   } catch (error) {
     handleError(error, "Failed to delete file");
-    return false 
+    return false;
   }
 };
-
-
