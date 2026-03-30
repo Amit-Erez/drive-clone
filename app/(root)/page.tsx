@@ -9,6 +9,8 @@ import { convertFileSize, getUsageSummary } from "@/lib/utils";
 import ActionDropDown from "@/components/ActionDropDown";
 import { Chart } from "@/components/Chart";
 
+export const dynamic = "force-dynamic";
+
 const Dashboard = async () => {
   const [files, totalSpace] = await Promise.all([
     getFiles({ types: [], limit: 10 }),
@@ -16,7 +18,6 @@ const Dashboard = async () => {
   ]);
   
   const usageSummary = getUsageSummary(totalSpace);
-
   
   return (
     <div className="dashboard-container">

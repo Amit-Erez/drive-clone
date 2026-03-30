@@ -112,6 +112,7 @@ export const getFiles = async ({
     return parseStringify(files);
   } catch (error) {
     handleError(error, "Failed to get files");
+    return { documents: [] };
   }
 };
 
@@ -223,5 +224,14 @@ export async function getTotalSpaceUsed() {
     return parseStringify(totalSpace);
   } catch (error) {
     handleError(error, "Error calculating total space used");
+    return {
+      image: { size: 0, latestDate: "" },
+      document: { size: 0, latestDate: "" },
+      video: { size: 0, latestDate: "" },
+      audio: { size: 0, latestDate: "" },
+      other: { size: 0, latestDate: "" },
+      used: 0,
+      all: 2 * 1024 * 1024 * 1024,
+    };
   }
 }
