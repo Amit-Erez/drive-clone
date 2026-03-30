@@ -3,34 +3,41 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { Input } from "./ui/input";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { getFiles } from "@/lib/actions/file.actions";
 import { Models } from "node-appwrite";
+import {useDebounce} from 'use-debounce';
 import Thumbnail from "./Thumbnail";
 import FormattedDateTime from "./FormattedDateTime";
 
 const Search = () => {
   const [query, setQuery] = useState("");
-  const searchParams = useSearchParams();
-  const searchQuery = searchParams.get("query") || "";
   const [results, setResults] = useState<Models.Document[]>([]);
   const [open, setOpen] = useState(true);
+  const [debouncedQuery] = useDebounce(query, 300)
+  // const [debouncedQuery, setDebouncedQuery] = useState("")
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("query") || "";
+  const pathname = usePathname();
   const router = useRouter()
 
-  const types: FileType[] = [];
   const sort = "$createdAt-desc";
   const limit = 10;
 
   useEffect(() => {
     const fetchFiles = async () => {
-      const files = await getFiles({ types, searchText: query, sort, limit });
+      if(debouncedQuery.length === 0) {
+        setResults([])
+          setOpen(false)
+          return router.push(pathname.replace(searchParams.toString(), ""))  
+      }
+      const files = await getFiles({ types: [], searchText: debouncedQuery, sort, limit });
       setResults(files.documents);
       setOpen(true);
     };
 
     fetchFiles();
-    console.log(query);
-  }, [query]);
+  }, [debouncedQuery]);
 
   useEffect(() => {
     if (!searchQuery) {
@@ -41,7 +48,7 @@ const Search = () => {
   const handleClickItem = (file: Models.Document) => {
     setOpen(false)
     setResults([])
-    router.push(`/${file.type === 'video' ? 'media' : file.type + 's'}?query=${query}`)
+    router.push(`/${file.type === 'video' || file.type === 'audio' ? 'media' : file.type + 's'}?query=${debouncedQuery}`)
   }
 
   return (
